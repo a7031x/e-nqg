@@ -86,8 +86,7 @@ def rnn(rnn_type, inputs, length, hidden_size, layer_num=1, dropout_keep_prob=No
         cell_fw = get_cell(rnn_type, hidden_size, layer_num, dropout_keep_prob)
         cell_bw = get_cell(rnn_type, hidden_size, layer_num, dropout_keep_prob)
         outputs, states = tf.nn.bidirectional_dynamic_rnn(
-            cell_bw, cell_fw, inputs, sequence_length=length, dtype=tf.float32
-        )
+            cell_bw, cell_fw, inputs, sequence_length=length, dtype=tf.float32)
         states_fw, states_bw = states
         if rnn_type.endswith('lstm'):
             #c_fw = [state_fw.c for state_fw in states_fw]
@@ -141,5 +140,17 @@ def dot_attention(value, memory, mask, weight_dim, keep_prob):
     dense_memory = dense(memory, weight_dim, False, 'memory')#[batch, qlen, 75]
     coref = tf.matmul(dense_value, tf.transpose(dense_memory, [0, 2, 1])) / (weight_dim**0.5)#[batch, plen, qlen]
     alpha = softmax(coref, tf.expand_dims(mask, axis=1))#[batch, plen, qlen]
-    ct = tf.matmul(alpha, memory, name='ct')
+    ct = tf.matmul(alpha, memory, name='ct')#[batch, plen, 500]
     return ct
+
+
+def rnn_decode(rnn_type, batch_size, hidden_size, embedding, sos, eos, init_state, maximum_iterations):
+    layers = len(init_state)
+    cell = get_cell(rnn_type, hidden_size, layers, 1.0)
+    start_tokens = tf.tile([sos], [batch_size])
+    helper = tc.seq2seq.GreedyEmbeddingHelper(embedding=embedding, start_tokens=start_tokens, end_token=eos)
+    if init_state is None:
+        init_state = cell.zero_state(batch_size, tf.float32)
+    decoder = tc.seq2seq.BasicDecoder(cell=cell, helper=helper, initial_state=init_state)
+    output, _, length = tc.seq2seq.dynamic_decode(decoder=decoder, impute_finished=True, maximum_iterations=maximum_iterations)
+    return output, length

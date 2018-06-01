@@ -1,3 +1,13 @@
 embedding_dim = 300
-hidden_dim = 150
+encoder_hidden_dim = 150
+decoder_hidden_dim = 150
 dot_attention_dim = 150
+max_question_len = 20
+NULL = '--NULL--'
+OOV = '--OOV--'
+SOS = '--SOS--'
+EOS = '--EOS--'
+NULL_ID = 0
+OOV_ID = 1
+SOS_ID = 2
+EOS_ID = 3

@@ -11,6 +11,12 @@
             "program": "${file}"
         },
         {
+            "name": "Python: model",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/model.py"
+        },
+        {
             "name": "Python: Attach",
             "type": "python",
             "request": "attach",
